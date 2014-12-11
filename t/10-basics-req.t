@@ -12,6 +12,7 @@ subtest '===== basics - specs =====' => sub {
 
     my $app = WebAPI::DBIC::WebApp->new({
         schema => Schema,
+        app_name => 'MyApp',
     })->to_psgi_app;
 
     run_request_spec_tests($app, \*DATA);

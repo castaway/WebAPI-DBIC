@@ -114,8 +114,6 @@ sub render_item_into_body {
     return;
 }
 
-
-
 sub add_params_to_url { # XXX this is all a bit suspect
     my ($self, $base, $passthru_params, $override_params) = @_;
     $base || croak "no base";

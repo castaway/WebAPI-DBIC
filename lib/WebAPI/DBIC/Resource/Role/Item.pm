@@ -26,6 +26,7 @@ has id => (         # array of 1 or more key values from url path
    is => 'ro',
    #isa => array ref
    required => 1,
+   default => sub {[]},
 );
 
 has item => (

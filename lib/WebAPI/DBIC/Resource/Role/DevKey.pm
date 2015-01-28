@@ -39,7 +39,7 @@ sub forbidden {
     my ($self) = @_;
 
     print STDERR "Checking if URI is forbidden ", $self->request->path, "\n";
-    return 0 if($self->request->path =~ /browser/);
+    return 0 if($self->request->path =~ /login/);
     
     return 1 if(!$self->request->param('user_token'));
 
@@ -49,7 +49,8 @@ sub forbidden {
     my $user = $self->set->result_source->schema->resultset('User')->find({ user_token => $user_token });
     return 1 if(!$user);
 
-    $self->set->result_source->schema->restrict_with_object( $user );
+    $self->set->result_source->schema->can('restrict_with_object') &&
+        $self->set->result_source->schema->restrict_with_object( $user );
     return 0;
 }
 

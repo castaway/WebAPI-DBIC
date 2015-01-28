@@ -28,6 +28,8 @@ use Plack::App::File;
 use WebAPI::DBIC::WebApp;
 use Alien::Web::HalBrowser;
 
+use MagicPantry::Model;
+
 my $hal_app = Plack::App::File->new(
   root => Alien::Web::HalBrowser->dir
 )->to_app;
@@ -40,6 +42,7 @@ my $schema = $schema_class->connect(); # uses DBI_DSN, DBI_USER, DBI_PASS env va
 
 my $app = WebAPI::DBIC::WebApp->new({
     schema   => $schema,
+    extra_routes => magic_pantry_routes(),
     route_maker => WebAPI::DBIC::RouteMaker->new(
         resource_class_for_item        => 'WebAPI::DBIC::Resource::GenericItem',
         resource_class_for_item_invoke => 'WebAPI::DBIC::Resource::GenericItemInvoke',
@@ -63,3 +66,25 @@ builder {
     # root redirect for discovery - redirect to API
     mount "/" => sub { [ 302, [ Location => "$app_prefix/" ], [ ] ] };
 };
+
+
+## Extra non-dbic-source routes for magic pantry
+## returns arrayref of arrayrefs, each with $path => (%args)
+## args are validations (regex of matching urls), defaults (params) and target (coderef)
+## NB:: WebApp will add its "schema" to the defaults
+## See WebAPI::DBIC::Route as_add_route_args for where I stole the target creation from
+sub magic_pantry_routes {
+    return [
+        [ 'login/?:connection_token' => (
+            target => sub { 
+                my $request = shift; # URL args from router remain in @_
+                Web::Machine->new(
+                    resource => 'MagicPantry::Resource::Login',
+                    resource_args => [ connection_token => shift ],
+                    tracing => $ENV{WEBAPI_DBIC_DEBUG},
+                )->to_app->($request->env);
+            },
+           )
+       ]
+   ];
+}

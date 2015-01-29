@@ -80,7 +80,7 @@ sub magic_pantry_routes {
                 my $request = shift; # URL args from router remain in @_
                 Web::Machine->new(
                     resource => 'MagicPantry::Resource::Login',
-                    resource_args => [ connection_token => shift ],
+                    resource_args => [ connection_token => shift, schema => $schema ],
                     tracing => $ENV{WEBAPI_DBIC_DEBUG},
                 )->to_app->($request->env);
             },

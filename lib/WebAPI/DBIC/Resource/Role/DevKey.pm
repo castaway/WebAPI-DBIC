@@ -6,6 +6,7 @@ WebAPI::DBIC::Resource::Role::DevKey - API protection via developer keys and use
 
 =cut
 
+use JSON;
 use Moo::Role;
 
 requires 'request';
@@ -40,10 +41,14 @@ sub forbidden {
 
     print STDERR "Checking if URI is forbidden ", $self->request->path, "\n";
     return 0 if($self->request->path =~ /login/);
-    
-    return 1 if(!$self->request->param('user_token'));
 
-    my $user_token = $self->request->param('user_token');
+    my $params = $self->request->parameters;
+    if($self->request->content_type && $self->request->content_type =~ /json/) {
+        $params = decode_json($self->request->content);
+    }
+    return 1 if(!$params->{'user_token'});
+
+    my $user_token = $params->{'user_token'};
     ## Can we look up the user here or does this turn it bit topsy
     ## turvy? I guess we're not restricting user lookups in the schema .. are we?
     my $user = $self->set->result_source->schema->resultset('User')->find({ user_token => $user_token });

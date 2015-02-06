@@ -17,6 +17,9 @@ requires 'set';
 requires 'throwable';
 requires 'prefetch';
 
+has 'search_cond' => ( is => 'rw', default => sub { return {} });
+has 'search_attrs'  => ( is => 'rw', default => sub { return {} });
+
 # TODO the params supported by a resource should be determined by the roles
 # consumed by that resource, plus any extra params it wants to declare support for.
 # So this should be reworked to enable that.
@@ -90,6 +93,7 @@ sub handle_request_params {
         }
         $self->$method($value, $param);
     }
+    $self->set ( $self->set->search_rs($self->search_cond, $self->search_attrs) );
 
     return 0;
 }
@@ -100,7 +104,8 @@ sub handle_request_params {
 sub _handle_rows_param {
     my ($self, $value) = @_;
     $value = 30 unless defined $value;
-    $self->set( $self->set->search_rs(undef, { rows => $value }) );
+    $self->search_attrs->{rows} = $value;
+#    $self->set( $self->set->search_rs(undef, { rows => $value }) );
     return;
 }
 
@@ -108,7 +113,8 @@ sub _handle_rows_param {
 sub _handle_page_param {
     my ($self, $value) = @_;
     $value = 1 unless defined $value;
-    $self->set( $self->set->search_rs(undef, { page => $value }) );
+    $self->search_attrs->{page} = $value;
+#    $self->set( $self->set->search_rs(undef, { page => $value }) );
     return;
 }
 
@@ -121,7 +127,8 @@ sub _handle_rollback_param { }
 
 sub _handle_search_criteria_param {
     my ($self, $value) = @_;
-    $self->set( $self->set->search_rs($value) );
+    $self->search_cond($value);
+#    $self->set( $self->set->search_rs($value) );
     return;
 }
 
@@ -146,7 +153,8 @@ sub _handle_prefetch_param {
 
     my $prefetch_or_join = $self->param('fields') ? 'join' : 'prefetch';
     Dwarn { $prefetch_or_join => $prefetch } if $ENV{WEBAPI_DBIC_DEBUG};
-    $self->set( $self->set->search_rs(undef, { $prefetch_or_join => $prefetch }))
+    $self->search_attrs->{$prefetch_or_join} = $prefetch
+#    $self->set( $self->set->search_rs(undef, { $prefetch_or_join => $prefetch }))
         if scalar @$prefetch;
 
     return;
@@ -248,7 +256,8 @@ sub _handle_fields_param {
         }]) if not defined $field;
     }
 
-    $self->set( $self->set->search_rs(undef, { columns => \@columns }) )
+    $self->search_attrs->{columns} = \@columns
+#    $self->set( $self->set->search_rs(undef, { columns => \@columns }) )
         if @columns;
 
     return;
@@ -296,7 +305,8 @@ sub _handle_sort_param {
         push @order_spec, { "-$dir" => $field };
     }
 
-    $self->set( $self->set->search_rs(undef, { order_by => \@order_spec }) )
+    $self->search_attrs->{order_by} = \@order_spec
+#    $self->set( $self->set->search_rs(undef, { order_by => \@order_spec }) )
         if @order_spec;
 
     return;
@@ -318,7 +328,8 @@ sub _handle_distinct_param {
     my $errors = join(", ", @errors);
     die "$errors\n" if $errors; # TODO throw?
 
-    $self->set( $self->set->search_rs(undef, { distinct => $value }) );
+    $self->search_attrs->{distinct} = $value;
+#    $self->set( $self->set->search_rs(undef, { distinct => $value }) );
 
     return;
 }

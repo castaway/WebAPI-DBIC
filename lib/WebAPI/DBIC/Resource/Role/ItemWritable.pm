@@ -82,6 +82,13 @@ sub _do_update_resource {
         $item->make_column_dirty($_) for keys %$hal;
     }
 
+    print STDERR Data::Dumper::Dumper($hal);
+    # Note we may have options mixed in with our data .. how do we not do this?
+    foreach my $col (keys %$hal) {
+        print STDERR "$col - ", $item->result_source->has_column($col);
+        delete $hal->{$col} if (!$item->result_source->has_column($col));
+    }
+    
     # Note that update() calls set_inflated_columns()
     $item->update($hal);
 

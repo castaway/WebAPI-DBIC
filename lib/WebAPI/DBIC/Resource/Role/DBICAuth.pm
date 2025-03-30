@@ -22,7 +22,7 @@ sub connect_schema_as { # XXX sub rather than method?
     $_[2] = '...'; # hide password from stack trace
 
     my $schema = $self->set->result_source->schema;
-    my $ci = $schema->storage->connect_info;
+    my $ci = $schema->storage->_dbi_connect_info;
     my ($ci_dsn, $ci_user, $ci_pass, $ci_attr) = @$ci;
 
     # ok if we're currently using the right auth
@@ -65,7 +65,7 @@ sub is_authorized {
     elsif ($http_auth_type eq 'Basic') {
 
         # https://metacpan.org/pod/DBIx::Class::Storage::DBI#connect_info
-        my $ci = $self->set->result_source->schema->storage->connect_info;
+        my $ci = $self->set->result_source->schema->storage->_dbi_connect_info;
         # extract the dsn (doesn't handle $ci->[0] being a code ref)
         my $dsn = (ref $ci->[0]) ? $ci->[0]->{dsn} : $ci->[0];
         confess "Can't determine DSN to use as auth realm from @$ci"
